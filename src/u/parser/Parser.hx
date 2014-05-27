@@ -10,7 +10,7 @@ class Parser {
 
 		var peg = new Peg();
 		peg.setText(text);
-		if(peg.do_statement()) {
+		if(peg.do_program()) {
 			return peg.getResult();
 		}
 		return {log : peg.getLog(), callstack : peg.getCallStack(), result:peg.getResult(), left : peg.getText()};

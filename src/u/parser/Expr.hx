@@ -7,6 +7,7 @@ enum Expr {
 	Div(left:Expr, right:Expr);
 	Other(left:Expr, op:String, right:Expr);
 	EString(str:String);
+	ENumber(str:String);
 	EBucket(expr:Expr);
 	ECall(name:String, params:Array<Expr>);
 	Error(mes:String);

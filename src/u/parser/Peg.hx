@@ -45,11 +45,17 @@ class Peg {
 	}
 
 	public function do_program() {
-		this.callstack.call("program");
+		var state = save_state();
 		if(do_statement() && do_program()) {
 			var _program = this.params.pop();
 			var _statement = this.params.pop();
-			this.params.push(_program.concat([_statement]));
+			this.params.push([_statement].concat(_program));
+			return true;
+		}
+		restore_state(state);
+		if(do_statement()) {
+			var _statement = this.params.pop();
+			this.params.push([_statement]);
 			return true;
 		}
 		return false;
@@ -57,11 +63,11 @@ class Peg {
 
 	public function do_statement() {
 		var state = save_state();
-		if(getKeyword() && do_word() && getChar("(") && do_params() && getChar(")") && getChar("{") && do_attrs() && getChar("}")) {
+		if(getKeyword() && do_word() && getChar("(") && do_params() && getChar(")") && getChar("{") && do_statement() && getChar("}")) {
 			var _attrs = this.params.pop();
 			var _params = this.params.pop();
 			var _words = this.params.pop();
-			this.params.push(Statement.SDef(Definition.FunctionDefinition(_words, _params, _attrs)));
+			this.params.push(Statement.SDefFunction(_words, _params, _attrs));
 			this.callstack.ret();
 			return true;
 		}
@@ -69,23 +75,27 @@ class Peg {
 		if(do_words() && getChar("{") && do_attrs() && getChar("}")) {
 			var _attrs = this.params.pop();
 			var _words = this.params.pop();
-			this.params.push(Statement.SDef(Definition.ClassDefinition(_words, _attrs)));
+			this.params.push(Statement.SDefClass(_words, _attrs));
 			return true;
 		}
 		restore_state(state);
-		//expr statement
 		if(do_expr_additive() && getChar(";")) {
 			var _expr = this.params.pop();
 			this.params.push(Statement.SExpr(_expr));
 			return true;
 		}
 		restore_state(state);
-		/*
-		if(do_words_statement()) {
+		if(do_words() && getChar("=") && do_expr_additive() && getChar(";")) {
+			var _expr = this.params.pop();
+			var _words = this.params.pop();
+			this.params.push(Statement.SRestriction(_words, _expr));
+			return true;
+		}
+		restore_state(state);
+		if(do_words() && getChar(";")) {
 			this.params.push(Statement.SWords(this.params.pop()));
 			return true;
 		}
-		*/
 		this.log.push("not statement : " + this.text);
 		return false;
 	}
@@ -210,6 +220,12 @@ class Peg {
 			return true;
 		}
 		restore_state(state);
+		if( do_number() ) {
+			var _word = this.params.pop();
+			this.params.push(Expr.ENumber(_word));
+			return true;
+		}
+		restore_state(state);
 		if( do_word() ) {
 			var _word = this.params.pop();
 			this.params.push(Expr.EString(_word));
@@ -226,6 +242,17 @@ class Peg {
 	}
 	public function do_word() {
 		var r : EReg = ~/^\w+/;
+		if(r.match(this.text)) {
+			this.params.push(r.matched(0));
+			this.text = r.replace(this.text, "");
+			spaces();
+			return true;
+		}
+		return false;
+	}
+
+	public function do_number() {
+		var r : EReg = ~/^\d+/;
 		if(r.match(this.text)) {
 			this.params.push(r.matched(0));
 			this.text = r.replace(this.text, "");

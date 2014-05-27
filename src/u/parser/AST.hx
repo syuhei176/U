@@ -9,12 +9,11 @@ enum Statement {
 	SExpr(expr:Expr);
 	SRestriction(left:Array<String>, expr:Expr);
 	SWords(words:Array<String>);
-	SDef(definition:Definition);
+	SDefClass(left:Array<String>, attrs:Array<Attr>/*, methods:Array<MethodDefinition>*/);
+	SDefFunction(left:Array<String>, params:Array<Param>, statements:Array<Statement>);
 }
 
 enum Definition {
-	ClassDefinition(left:Array<String>, attrs:Array<Attr>/*, methods:Array<MethodDefinition>*/);
-	FunctionDefinition(left:Array<String>, params:Array<Param>, statements:Array<Statement>);
 }
 
 enum MethodDefinition {

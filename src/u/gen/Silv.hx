@@ -3,11 +3,6 @@ package u.parser;
 class Silv {
 	static public function Compile() {
 			var compiler = new Silv.Compiler();
-			if(values) {
-				for(var name in values) {
-					compiler.addSystemValue(name, values[name]);
-				}
-			}
 			compiler.addLibrary(library.numcheck);
 			var func = compiler.CompileToFunction(script);
 			return new Silv.CompiledScript(func);

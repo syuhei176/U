@@ -1,1 +1,14 @@
-a * (b + c);
+a = 2;
+b = a + 5;
+b * b - 200;
+
+fib(i-1) * fib(i-2);
+
+function fib(i) {
+	fib(i-1) * fib(i-2);
+}
+
+class Book {
+	String title;
+	String author;
+}
