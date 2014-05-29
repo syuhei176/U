@@ -10,5 +10,6 @@ enum Expr {
 	ENumber(str:String);
 	EBucket(expr:Expr);
 	ECall(name:String, params:Array<Expr>);
+	EDot(left:Expr, right:Expr);
 	Error(mes:String);
 }
