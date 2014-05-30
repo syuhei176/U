@@ -1,5 +1,9 @@
 package u.parser;
 
+enum AST {
+
+}
+
 enum Program {
 	Statements(statements:Array<Statement>);
 	None;
@@ -10,22 +14,29 @@ enum Statement {
 	SReturn(expr:Expr);
 	SRestriction(left:Array<String>, expr:Expr);
 	SWords(words:Array<String>);
-	SDefClass(left:Array<String>, attrs:Array<Attr>/*, methods:Array<MethodDefinition>*/);
+	SDefClass(name:String, elems:Array<ClassElement>);
 	SDefFunction(name:String, params:Array<Param>, statements:Array<Statement>);
 }
 
-enum Definition {
+enum ClassElement {
+	Attr(type:String, name:String);
+	Method(name:String, params:Array<Param>, statements:Array<Statement>);
 }
 
-enum MethodDefinition {
-	MethodDefinition(name:String, params:Array<Expr>, statements:Array<Statement>);
+typedef Attr = {
+	type:String,
+	name:String
 }
 
-enum Attr {
-	AAttr(names:Array<String>);
+typedef Method = {
+	type:String,
+	name:String,
+	params:Array<Expr>,
+	statements:Array<Statement>
 }
 
-enum Param {
-	PParam(type:String, name:String);
+typedef Param = {
+	type:String,
+	name:String
 }
 

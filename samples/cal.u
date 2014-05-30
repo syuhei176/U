@@ -1,5 +1,9 @@
-function add(int a, int b) {
-	return a + b;
+class Main {
+	function add(int a, int b) {
+		return a + b;
+	}
+	function main() {
+		a = add(3, 4);
+		return a;
+	}	
 }
-a = add(3, 4);
-return a;

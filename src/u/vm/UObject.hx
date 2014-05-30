@@ -5,15 +5,15 @@ import u.parser.Expr;
 
 class UObject {
 	private var address:String;
-	private var values:Map<String, Float>;
-	private var functionmap:Map<String, UFunction>;
+	private var uclass:UClass;
+	private var values:Map<String, UObject>;
 
 	public function new(address:String) {
 
 	}
 
-	public function send(params) {
-
+	public function call(name, params) {
+		this.uclass.call(name, values, params);
 	}
 
 }

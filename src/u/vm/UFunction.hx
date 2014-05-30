@@ -8,6 +8,7 @@ class UFunction {
 	private var values:Map<String, Float>;
 	
 	private var functionmap:Map<String, UFunction>;
+	private var classmap:Map<String, UClass>;
 	var name:String;
 	var params:Array<Param>;
 	var statements:Array<Statement>;
@@ -18,6 +19,7 @@ class UFunction {
 		this.statements = statements;
 		this.values = new Map<String, Float>();
 		this.functionmap = new Map<String, UFunction>();
+		this.classmap = new Map<String, UClass>();
 	}
 
 	public function eval(params:Array<Dynamic>):Dynamic {
@@ -28,8 +30,8 @@ class UFunction {
 		var i=0;
 		for(p in this.params) {
 			switch(p) {
-				case Param.PParam(type, name):
-					this.values.set(name, input_params[i]);
+				case { type : _type , name : _name }:
+					this.values.set(_name, input_params[i]);
 			}
 			i++;
 		}
@@ -56,7 +58,8 @@ class UFunction {
 			case Statement.SRestriction( left , expr ):
 				this.values.set(left[0], eval_expr(expr));
 				null;
-			case Statement.SDefClass( left , attrs ):
+			case Statement.SDefClass( name , elems ):
+				this.classmap.set(name, new UClass(name, elems));
 				null;
 			case Statement.SDefFunction(name, params, statements):
 				this.functionmap.set(name, new UFunction(name, params, statements));
@@ -82,6 +85,8 @@ class UFunction {
 				this.values.get(str);
 			case Expr.ENumber( str ):
 				Std.parseFloat(str);
+			case Expr.ENew( name , params ):
+				this.classmap.get(name).call_constructor(params);
 			case Expr.ECall( name , params ):
 				if(this.functionmap.get(name) != null) {
 					var input_params = new Array<Dynamic>();
@@ -91,6 +96,8 @@ class UFunction {
 					return this.functionmap.get(name).eval(input_params);
 				}else
 					return 0;
+			case Expr.EDot( left , right ):
+			
 			default:
 				0.0;
 		}

@@ -1,7 +1,7 @@
 package u.parser;
 
 import u.parser.AST.Statement;
-import u.parser.AST.Definition;
+import u.parser.AST.ClassElement;
 import u.parser.AST.Attr;
 import u.parser.AST.Param;
 import u.util.CallStack;
@@ -118,14 +118,14 @@ class Peg {
 		var state = save_state();
 		if(do_word() && getChar("{") && getChar("}")) {
 			var _word = this.params.pop();
-			this.params.push(Statement.SDefClass([_word], []));
+			this.params.push(Statement.SDefClass(_word, []));
 			return true;
 		}
 		restore_state(state);
 		if(do_word() && getChar("{") && do_class_elements() && getChar("}")) {
 			var _elems = this.params.pop();
 			var _word = this.params.pop();
-			this.params.push(Statement.SDefClass([_word], _elems));
+			this.params.push(Statement.SDefClass(_word, _elems));
 			return true;
 		}
 		return false;
@@ -140,7 +140,7 @@ class Peg {
 			return true;
 		}
 		restore_state(state);
-		if(do_words_statement() && do_class_elements()) {
+		if(do_attr() && do_class_elements()) {
 			var _attrs = this.params.pop();
 			var _attr = this.params.pop();
 			this.params.push([_attr].concat(_attrs));
@@ -155,14 +155,24 @@ class Peg {
 		return false;
 	}
 
+	public function do_attr() {
+		var state = save_state();
+		if(do_word() && do_word() && getChar(";")) {
+			var _name = this.params.pop();
+			var _type = this.params.pop();
+			this.params.push(ClassElement.Attr(_type, _name));
+			return true;
+		}
+		return false;
+	}
+
 	public function do_method() {
 		var state = save_state();
 		if(getKeyword("function") && do_word() && do_paramdefs_with_bucket() && getChar("{") && do_program() && getChar("}")) {
 			var _attrs = this.params.pop();
 			var _params = this.params.pop();
 			var _name = this.params.pop();
-			this.params.push(Statement.SDefFunction(_name, _params, _attrs));
-			this.callstack.ret();
+			this.params.push(ClassElement.Method(_name, _params, _attrs));
 			return true;
 		}
 		return false;
@@ -189,14 +199,14 @@ class Peg {
 			var _attrs = this.params.pop();
 			var _name = this.params.pop();
 			var _type = this.params.pop();
-			this.params.push([Param.PParam( _type , _name )].concat(_attrs));
+			this.params.push([{ type : _type , name : _name }].concat(_attrs));
 			return true;
 		}
 		restore_state(state);
 		if(do_word() && do_word()) {
 			var _name = this.params.pop();
 			var _type = this.params.pop();
-			this.params.push([Param.PParam( _type , _name )]);
+			this.params.push([{ type : _type , name : _name }]);
 			return true;
 		}
 		this.log.push("not params : " + this.text);
@@ -212,6 +222,7 @@ class Peg {
 		}
 		restore_state(state);
 		if(getChar("(") && getChar(")")) {
+			this.params.push([]);
 			return true;
 		}
 		return false;
@@ -299,9 +310,9 @@ class Peg {
 	public function do_expr_primary_dot() {
 		var state = save_state();
 		if(do_expr_primary() && getChar(".") && do_expr_primary_dot()) {
-			var _primary = this.params.pop();
 			var _primary_dot = this.params.pop();
-			this.params.push(Expr.EDot(_primary_dot, _primary));
+			var _primary = this.params.pop();
+			this.params.push(Expr.EDot(_primary, _primary_dot));
 			return true;
 		}
 		restore_state(state);
@@ -324,13 +335,19 @@ class Peg {
 		restore_state(state);
 		if(getKeyword("new") && do_word() && getChar("(") && getChar(")")) {
 			var _call = this.params.pop();
-			this.params.push(Expr.ECall(_call, new Array<Expr>()));
+			this.params.push(Expr.ENew(_call, new Array<Expr>()));
 			return true;
 		}
 		restore_state(state);
 		if( do_number() ) {
 			var _word = this.params.pop();
 			this.params.push(Expr.ENumber(_word));
+			return true;
+		}
+		restore_state(state);
+		if(getChar("\"") && do_word() && getChar("\"")) {
+			var _word = this.params.pop();
+			this.params.push(Expr.EConstString(_word));
 			return true;
 		}
 		restore_state(state);
