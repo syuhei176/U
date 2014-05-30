@@ -8,42 +8,61 @@ class UFunction {
 	private var values:Map<String, Float>;
 	
 	private var functionmap:Map<String, UFunction>;
-	var left:Array<String>;
+	var name:String;
 	var params:Array<Param>;
 	var statements:Array<Statement>;
 
-	public function new(left, params, statements) {
-		this.left = left;
+	public function new(name, params, statements) {
+		this.name = name;
 		this.params = params;
 		this.statements = statements;
+		this.values = new Map<String, Float>();
+		this.functionmap = new Map<String, UFunction>();
 	}
 
-	public function eval(params) {
-		this.eval_program(this.statements, params);
+	public function eval(params:Array<Dynamic>):Dynamic {
+		return this.eval_program(params);
 	}
 
-	public function eval_program(statements:Array<Statement>, params) {
-		for(s in statements) {
-			trace(eval_statement(s));
+	public function eval_program(input_params:Array<Dynamic>) {
+		var i=0;
+		for(p in this.params) {
+			switch(p) {
+				case Param.PParam(type, name):
+					this.values.set(name, input_params[i]);
+			}
+			i++;
 		}
+		for(s in this.statements) {
+			if(s != null) {
+				var r = eval_statement(s);
+				if(r != null) {
+					return r;
+				}
+			}
+		}
+		return null;
 	}
 
 	public function eval_statement(statement:Statement):Dynamic {
 		return switch(statement) {
 			case Statement.SExpr( expr ):
 				eval_expr(expr);
+				null;
+			case Statement.SReturn( expr ):
+				eval_expr(expr);
 			case Statement.SWords( words ):
-				0.0;
+				null;
 			case Statement.SRestriction( left , expr ):
 				this.values.set(left[0], eval_expr(expr));
-				0.0;
+				null;
 			case Statement.SDefClass( left , attrs ):
-				"Class";
-			case Statement.SDefFunction(left, params, statements):
-				this.functionmap.set(left[1], new UFunction(left, params, statements));
-				"Function";
+				null;
+			case Statement.SDefFunction(name, params, statements):
+				this.functionmap.set(name, new UFunction(name, params, statements));
+				null;
 			default:
-				0.0;
+				null;
 		}
 	}
 
@@ -64,7 +83,14 @@ class UFunction {
 			case Expr.ENumber( str ):
 				Std.parseFloat(str);
 			case Expr.ECall( name , params ):
-				this.functionmap.get(name).eval(params);
+				if(this.functionmap.get(name) != null) {
+					var input_params = new Array<Dynamic>();
+					for(p in params) {
+						input_params.push(eval_expr(p));
+					}
+					return this.functionmap.get(name).eval(input_params);
+				}else
+					return 0;
 			default:
 				0.0;
 		}

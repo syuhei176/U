@@ -15,8 +15,9 @@ class Vm {
 	}
 
 	public function eval_program(statements:Array<Statement>) {
-		this.main = new UFunction( new Array<String>() , new Array<u.parser.Param>(), statements);
-		this.main.eval(null);
+		this.main = new UFunction( "main" , new Array<u.parser.Param>(), statements);
+		var result = this.main.eval(null);
+		trace( result );
 	}
 
 	public function eval_statement(statement:Statement):Dynamic {
@@ -26,7 +27,7 @@ class Vm {
 			case Statement.SDefClass( left , attrs ):
 				"Class";
 			case Statement.SDefFunction(left, params, statements):
-				functionmap.set(left[1], new UFunction(left, params, statements));
+				functionmap.set(left, new UFunction(left, params, statements));
 				"Function";
 			default:
 				0.0;

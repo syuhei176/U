@@ -1,0 +1,20 @@
+a = 3 + 4;
+
+fib(i-1) * fib(i-2);
+
+function fib(i) {
+	fib(i-1) * fib(i-2);
+}
+
+class Book {
+	String title;
+	function getTitle() {
+		a + 5;
+	}
+}
+
+var book = new Book();
+
+book.getTitle();
+
+a;
