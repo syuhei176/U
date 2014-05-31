@@ -6,31 +6,34 @@ import u.parser.Expr;
 class Vm {
 
 	private var values:Map<String, Float>;
-	private var functionmap:Map<String, UFunction>;
+	public var classmap:Map<String, UClass>;
 	private var main:UFunction;
 
 	public function new() {
 		this.values = new Map<String, Float>();
-		this.functionmap = new Map<String, UFunction>();
+		this.classmap = new Map<String, UClass>();
 	}
 
-	public function eval_program(statements:Array<Statement>) {
-		this.main = new UFunction( "main" , new Array<u.parser.Param>(), statements);
-		var result = this.main.eval(null);
+	public function read_statements(statements:Array<Statement>) {
+		for(s in statements) {
+			this.eval_statement(s);
+		}
+		//this.main = new UFunction( "main" , new Array<u.parser.Param>(), statements);
+		//var result = this.main.eval(null);
+		//trace( result );
+	}
+
+	public function eval_program() {
+		var mainClass = this.classmap.get("Main");
+		var result = mainClass.call_static("main", null);
 		trace( result );
 	}
 
-	public function eval_statement(statement:Statement):Dynamic {
-		return switch(statement) {
-			case Statement.SWords( words ):
-				0.0;
-			case Statement.SDefClass( left , attrs ):
-				"Class";
-			case Statement.SDefFunction(left, params, statements):
-				functionmap.set(left, new UFunction(left, params, statements));
-				"Function";
+	public function eval_statement(statement:Statement) {
+		switch(statement) {
+			case Statement.SDefClass( name , elems ):
+				this.classmap.set(name, new UClass(this, name, elems));
 			default:
-				0.0;
 		}
 	}
 }

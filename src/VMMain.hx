@@ -36,6 +36,7 @@ class VMMain {
 		}
 		var result = parser.parse_main(text);
 		var vm = new Vm();
-		vm.eval_program(result[0]);
+		vm.read_statements(result[0]);
+		vm.eval_program();
 	}
 }

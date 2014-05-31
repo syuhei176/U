@@ -10,7 +10,7 @@ enum Expr {
 	EString(str:String);
 	ENumber(str:String);
 	EBucket(expr:Expr);
-	ECall(name:String, params:Array<Expr>);
+	ECall(left:Expr, name:String, params:Array<Expr>);
 	ENew(name:String, params:Array<Expr>);
 	EDot(left:Expr, right:Expr);
 	Error(mes:String);

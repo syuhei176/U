@@ -3,7 +3,7 @@ class Main {
 		return a + b;
 	}
 	function main() {
-		a = add(3, 4);
+		a = Main.add(3, 4);
 		return a;
 	}	
 }

@@ -5,6 +5,10 @@ class Book {
 	}
 }
 
-var book = new Book();
+class Main {
+	function main() {
+		book = new Book();
 
-return book.getTitle(1);
+		return book.getTitle(1);
+	}	
+}
