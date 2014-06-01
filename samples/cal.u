@@ -1,9 +1,15 @@
 class Main {
-	function add(int a, int b) {
-		return a + b;
+	function fib(int a) {
+		if(a == 0) {
+			return 1;
+		}
+		if(a == 1) {
+			return 1;
+		}
+		return Main.fib(a-1) + Main.fib(a-2);
 	}
 	function main() {
-		a = Main.add(3, 4);
+		a = Main.fib(5);
 		return a;
-	}	
+	}
 }

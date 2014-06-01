@@ -10,6 +10,7 @@ enum Program {
 }
 
 enum Statement {
+	SIF(condition:Expr, statements:Array<Statement>);
 	SExpr(expr:Expr);
 	SReturn(expr:Expr);
 	SRestriction(left:Array<String>, expr:Expr);

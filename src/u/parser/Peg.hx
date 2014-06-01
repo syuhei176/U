@@ -63,6 +63,13 @@ class Peg {
 
 	public function do_statement() {
 		var state = save_state();
+		if(getKeyword("if") && getChar("(") && do_expr_additive() && getChar(")") && getChar("{") && do_program() && getChar("}")) {
+			var _program = this.params.pop();
+			var _condition = this.params.pop();
+			this.params.push(Statement.SIF(_condition, _program));
+			this.callstack.ret();
+			return true;
+		}
 		if(getKeyword("function") && do_word() && do_paramdefs_with_bucket() && getChar("{") && do_program() && getChar("}")) {
 			var _attrs = this.params.pop();
 			var _params = this.params.pop();
@@ -287,7 +294,7 @@ class Peg {
 	}
 	public function do_expr_multiplicative() {
 		var state = save_state();
-		if(do_expr_primary() && getChars("*/") && do_expr_multiplicative()) {
+		if(do_expr_comparison() && getChars("*/") && do_expr_multiplicative()) {
 			var _expr = this.params.pop();
 			var _op = this.params.pop();
 			var _word = this.params.pop();
@@ -296,6 +303,56 @@ class Peg {
 			}else if(_op == "/") {
 				this.params.push(Expr.Div(_word, _expr));
 			}
+			return true;
+		}
+		restore_state(state);
+		if(do_expr_comparison()) {
+			var _expr = this.params.pop();
+			this.params.push(_expr);
+			return true;
+		}
+		this.log.push("not expr multiplicative : " + this.text);
+		return false;
+	}
+	public function do_expr_comparison() {
+		var state = save_state();
+		if(do_expr_primary() && getChars("<>") && do_expr_comparison()) {
+			var _expr = this.params.pop();
+			var _op = this.params.pop();
+			var _word = this.params.pop();
+			if(_op == "<") {
+				this.params.push(Expr.Lt(_word, _expr));
+			}else if(_op == ">") {
+				this.params.push(Expr.Gt(_word, _expr));
+			}
+			return true;
+		}
+		restore_state(state);
+		if(do_expr_primary() && getKeyword("<=") && do_expr_comparison()) {
+			var _expr = this.params.pop();
+			var _word = this.params.pop();
+			this.params.push(Expr.Le(_word, _expr));
+			return true;
+		}
+		restore_state(state);
+		if(do_expr_primary() && getKeyword(">=") && do_expr_comparison()) {
+			var _expr = this.params.pop();
+			var _word = this.params.pop();
+			this.params.push(Expr.Ge(_word, _expr));
+			return true;
+		}
+		restore_state(state);
+		if(do_expr_primary() && getKeyword("==") && do_expr_comparison()) {
+			var _expr = this.params.pop();
+			var _word = this.params.pop();
+			this.params.push(Expr.Eq(_word, _expr));
+			return true;
+		}
+		restore_state(state);
+		if(do_expr_primary() && getKeyword("!=") && do_expr_comparison()) {
+			var _expr = this.params.pop();
+			var _word = this.params.pop();
+			this.params.push(Expr.Ne(_word, _expr));
 			return true;
 		}
 		restore_state(state);

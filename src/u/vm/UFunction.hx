@@ -14,6 +14,7 @@ class UFunction {
 	var params:Array<Param>;
 	var statements:Array<Statement>;
 	private var vm:Vm;
+	private var return_obj:UObjectReference;
 
 	public function new(vm, name, params, statements) {
 		this.vm = vm;
@@ -23,17 +24,14 @@ class UFunction {
 		this.values = new Map<String, UObjectReference>();
 		this.functionmap = new Map<String, UFunction>();
 		this.classmap = new Map<String, UClass>();
+		this.return_obj = null;
 	}
 
-	public function eval(params:Array<UObjectReference>):UObjectReference {
-		return this.eval_program(params);
+	public function clone() {
+		return new UFunction(vm, name, params, statements);
 	}
 
-	public function set_self(self:UObjectReference) {
-		this.values.set("this", self);
-	}
-
-	public function eval_program(input_params:Array<UObjectReference>) {
+	public function eval(input_params:Array<UObjectReference>):UObjectReference {
 		var i=0;
 		for(p in this.params) {
 			switch(p) {
@@ -42,24 +40,43 @@ class UFunction {
 			}
 			i++;
 		}
-		for(s in this.statements) {
+		this.eval_program(this.statements);
+		return this.return_obj;
+	}
+
+	public function set_self(self:UObjectReference) {
+		this.values.set("this", self);
+	}
+
+	public function eval_program(statements:Array<Statement>) {
+		for(s in statements) {
 			if(s != null) {
 				var r = eval_statement(s);
-				if(r != null) {
-					return r;
+				if(this.return_obj != null) {
+					return;
 				}
 			}
 		}
-		return null;
+	}
+
+	public function do_return(objref:UObjectReference) {
+		this.return_obj = objref;
 	}
 
 	public function eval_statement(statement:Statement):UObjectReference {
 		return switch(statement) {
+			case Statement.SIF( condition , statements ):
+				if(switch(eval_expr(condition)){case UObjectReference.UBool( b ):b;default:false;}) {
+					eval_program(statements);
+					null;
+				}else
+					null;
 			case Statement.SExpr( expr ):
 				eval_expr(expr);
 				null;
 			case Statement.SReturn( expr ):
-				eval_expr(expr);
+				do_return(eval_expr(expr));
+				null;
 			case Statement.SWords( words ):
 				null;
 			case Statement.SRestriction( left , expr ):
@@ -86,6 +103,10 @@ class UFunction {
 				UObjectReferenceOperation.times(eval_expr(left), eval_expr(right));
 			case Expr.Div( left, right ):
 				UObjectReferenceOperation.div(eval_expr(left), eval_expr(right));
+			case Expr.Eq( left, right ):
+				UObjectReferenceOperation.eq(eval_expr(left), eval_expr(right));
+			case Expr.Le( left, right ):
+				UObjectReferenceOperation.le(eval_expr(left), eval_expr(right));
 			case Expr.EBucket( expr ):
 				eval_expr(expr);
 			case Expr.EString( str ):

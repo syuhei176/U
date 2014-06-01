@@ -34,6 +34,6 @@ class UClass {
 	}
 
 	public function call_static(name, params) {
-		return this.methods.get(name).eval(params);
+		return this.methods.get(name).clone().eval(params);
 	}
 }

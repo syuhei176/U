@@ -81,4 +81,31 @@ class UObjectReferenceOperation {
 				UObjectReference.UError;
 		}
 	}
+	static public function eq(objref1, objref2) {
+		return switch(objref1) {
+			case UObjectReference.UNumber(i1):
+				return switch(objref2) {
+					case UObjectReference.UNumber(i2):
+						UObjectReference.UBool(i1 == i2);
+					default:
+						UObjectReference.UError;
+				}
+			default:
+				UObjectReference.UError;
+		}
+	}
+	static public function le(objref1, objref2) {
+		trace(objref1, objref2);
+		return switch(objref1) {
+			case UObjectReference.UNumber(i1):
+				return switch(objref2) {
+					case UObjectReference.UNumber(i2):
+						UObjectReference.UBool(i1 <= i2);
+					default:
+						UObjectReference.UError;
+				}
+			default:
+				UObjectReference.UError;
+		}
+	}
 }
