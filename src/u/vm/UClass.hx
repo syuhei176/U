@@ -1,7 +1,7 @@
 package u.vm;
 
 import u.parser.AST;
-import u.parser.Expr;
+import u.parser.AST.Expr;
 import u.vm.UObjectReference;
 
 class UClass {
@@ -29,8 +29,9 @@ class UClass {
 	}
 
 	public function call(name, self, params:Array<UObjectReference>):UObjectReference {
-		this.methods.get(name).set_self(self);
-		return this.methods.get(name).eval(params);
+		var method = this.methods.get(name).clone();
+		method.set_self(self);
+		return method.eval(params);
 	}
 
 	public function call_static(name, params) {

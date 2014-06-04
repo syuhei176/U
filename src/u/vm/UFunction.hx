@@ -1,7 +1,7 @@
 package u.vm;
 
 import u.parser.AST;
-import u.parser.Expr;
+import u.parser.AST.Expr;
 import u.vm.UObjectReference;
 
 class UFunction {
@@ -80,7 +80,8 @@ class UFunction {
 			case Statement.SWords( words ):
 				null;
 			case Statement.SRestriction( left , expr ):
-				this.values.set(left[0], eval_expr(expr));
+				//this.values.set(left, eval_expr(expr));
+				this.assignment_expr(left, eval_expr(expr));
 				null;
 			case Statement.SDefClass( name , elems ):
 				this.classmap.set(name, new UClass(this.vm, name, elems));
@@ -93,8 +94,33 @@ class UFunction {
 		}
 	}
 
-	public function eval_expr(expr:Expr):UObjectReference {
+	public function assignment_expr(expr:Expr, obj:UObjectReference) {
 		return switch(expr) {
+			case Expr.Member( left, right ):
+				member_expr(left, right, obj);
+			case Expr.EString( str ):
+				this.values.set(str, obj);
+			default:
+		}
+	}
+
+	public function member_expr(left:String, right:Expr, obj) {
+		return switch(right) {
+			case Expr.EString( str2 ):
+				return switch(this.values.get(left)) {
+					case UObjectReference.UObject( object ):
+						object.set(str2, obj);
+					default:
+						null;
+				}
+			default:
+		}
+	}
+
+	public function eval_expr(expr:Expr, ?base):UObjectReference {
+		return switch(expr) {
+			case Expr.Member( left, right ):
+				eval_expr(right, left);
 			case Expr.Plus( left, right ):
 				UObjectReferenceOperation.plus(eval_expr(left), eval_expr(right));
 			case Expr.Minus( left, right ):
@@ -110,11 +136,21 @@ class UFunction {
 			case Expr.EBucket( expr ):
 				eval_expr(expr);
 			case Expr.EString( str ):
-				var obj = this.values.get(str);
-				if(obj == null) {
-					return UObjectReference.UClass(vm.classmap.get(str));
+				if(base == null) {
+					var obj = this.values.get(str);
+					if(obj == null) {
+						return UObjectReference.UClass(vm.classmap.get(str));
+					}
+					return obj;
+				}else{
+					var obj = this.values.get(base);
+					switch (obj) {
+						case UObjectReference.UObject( object ):
+							return object.get(str);
+						default:
+							null;
+					}
 				}
-				return obj;
 			case Expr.EConstString( str ):
 				UObjectReference.UString( str );
 			case Expr.ENumber( str ):
@@ -126,13 +162,24 @@ class UFunction {
 				for(p in params) {
 					input_params.push(eval_expr(p));
 				}
-				return switch(eval_expr(left)) {
-					case UObjectReference.UObject(object):
-						return object.call(name, input_params);
-					case UObjectReference.UClass(klass):
-						return klass.call_static(name, input_params);
-					default:
-						null;
+				if(base == null) {
+					return switch(eval_expr(left)) {
+						case UObjectReference.UObject(object):
+							return object.call(name, input_params);
+						case UObjectReference.UClass(klass):
+							return klass.call_static(name, input_params);
+						default:
+							null;
+					}
+				}else{
+					return switch(eval_expr(Expr.EString(base))) {
+						case UObjectReference.UObject(object):
+							return object.call(name, input_params);
+						case UObjectReference.UClass(klass):
+							return klass.call_static(name, input_params);
+						default:
+							null;
+					}
 				}
 			case Expr.EDot( left , right ):
 				return switch(eval_expr(left)) {

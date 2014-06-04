@@ -1,7 +1,6 @@
 package u.vm;
 
 import u.parser.AST;
-import u.parser.Expr;
 
 class Vm {
 

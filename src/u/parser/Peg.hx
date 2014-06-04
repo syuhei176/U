@@ -4,6 +4,7 @@ import u.parser.AST.Statement;
 import u.parser.AST.ClassElement;
 import u.parser.AST.Attr;
 import u.parser.AST.Param;
+import u.parser.AST.Expr;
 import u.util.CallStack;
 
 class Peg {
@@ -97,7 +98,7 @@ class Peg {
 			return true;
 		}
 		restore_state(state);
-		if(do_words() && getChar("=") && do_expr_additive() && getChar(";")) {
+		if(do_expr_primary_dot() && getChar("=") && do_expr_additive() && getChar(";")) {
 			var _expr = this.params.pop();
 			var _words = this.params.pop();
 			this.params.push(Statement.SRestriction(_words, _expr));
@@ -316,7 +317,7 @@ class Peg {
 	}
 	public function do_expr_comparison() {
 		var state = save_state();
-		if(do_expr_primary() && getChars("<>") && do_expr_comparison()) {
+		if(do_expr_primary_dot() && getChars("<>") && do_expr_comparison()) {
 			var _expr = this.params.pop();
 			var _op = this.params.pop();
 			var _word = this.params.pop();
@@ -328,35 +329,35 @@ class Peg {
 			return true;
 		}
 		restore_state(state);
-		if(do_expr_primary() && getKeyword("<=") && do_expr_comparison()) {
+		if(do_expr_primary_dot() && getKeyword("<=") && do_expr_comparison()) {
 			var _expr = this.params.pop();
 			var _word = this.params.pop();
 			this.params.push(Expr.Le(_word, _expr));
 			return true;
 		}
 		restore_state(state);
-		if(do_expr_primary() && getKeyword(">=") && do_expr_comparison()) {
+		if(do_expr_primary_dot() && getKeyword(">=") && do_expr_comparison()) {
 			var _expr = this.params.pop();
 			var _word = this.params.pop();
 			this.params.push(Expr.Ge(_word, _expr));
 			return true;
 		}
 		restore_state(state);
-		if(do_expr_primary() && getKeyword("==") && do_expr_comparison()) {
+		if(do_expr_primary_dot() && getKeyword("==") && do_expr_comparison()) {
 			var _expr = this.params.pop();
 			var _word = this.params.pop();
 			this.params.push(Expr.Eq(_word, _expr));
 			return true;
 		}
 		restore_state(state);
-		if(do_expr_primary() && getKeyword("!=") && do_expr_comparison()) {
+		if(do_expr_primary_dot() && getKeyword("!=") && do_expr_comparison()) {
 			var _expr = this.params.pop();
 			var _word = this.params.pop();
 			this.params.push(Expr.Ne(_word, _expr));
 			return true;
 		}
 		restore_state(state);
-		if(do_expr_primary()) {
+		if(do_expr_primary_dot()) {
 			var _expr = this.params.pop();
 			this.params.push(_expr);
 			return true;
@@ -366,9 +367,16 @@ class Peg {
 	}
 	public function do_expr_primary_dot() {
 		var state = save_state();
-		if(do_word() && getChar(".")) {
-			var _word = this.params.pop();
-			this.params.push(Expr.EString(_word));
+		if(do_word() && getChar(".") && do_expr_primary()) {
+			var _right = this.params.pop();
+			var _left = this.params.pop();
+			this.params.push(Expr.Member(_left, _right));
+			return true;
+		}
+		restore_state(state);
+		if(do_expr_primary()) {
+			var _expr = this.params.pop();
+			this.params.push(_expr);
 			return true;
 		}
 		return false;
@@ -376,11 +384,11 @@ class Peg {
 
 	public function do_expr_primary() {
 		var state = save_state();
-		if(do_expr_primary_dot() && do_word() && do_params_with_bucket()) {
+		if(do_word() && do_params_with_bucket()) {
 			var _params = this.params.pop();
 			var _call = this.params.pop();
-			var _left = this.params.pop();
-			this.params.push(Expr.ECall(_left, _call, _params));
+			//var _left = this.params.pop();
+			this.params.push(Expr.ECall(null, _call, _params));
 			return true;
 		}
 		restore_state(state);

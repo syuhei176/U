@@ -5,12 +5,6 @@ class Fib {
 		this.a = 1;
 		this.b = 2;
 	}
-	function addA() {
-		this.a = this.a + 1;
-	}
-	function getA() {
-		return this.a;
-	}
 	function fib() {
 		t = this.a;
 		this.a = this.b;
@@ -24,7 +18,6 @@ class Main {
 	function main() {
 		f = new Fib();
 		f.init();
-		f.fib();
 		f.fib();
 		f.fib();
 		f.fib();

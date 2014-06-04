@@ -5,6 +5,12 @@ class Book {
 	}
 }
 
+class Server {
+	
+}
+
+
+
 class Main {
 	function main() {
 		book = new Book();
